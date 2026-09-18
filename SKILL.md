@@ -1,5 +1,5 @@
 ---
-name: yoga-barn-guide
+name: yoga-barn-class-selector
 description: 根据用户提问语言回答，帮助理解乌布 The Yoga Barn 的课程，结合练习经验、当天感受、偏好与可用时间选课；可在获授权时结合身体数据和日历筛选，不适用于其他同名场馆。 / Respond in the user’s language to help choose classes at The Yoga Barn in Ubud using practice experience, current feelings, preferences, and available time; optionally use authorized health and calendar context; not for other venues with the same name.
 ---
 

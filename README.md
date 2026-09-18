@@ -1,4 +1,4 @@
-# Yoga Barn Guide / Yoga Barn 选课助手
+# Yoga Barn Class Selector / Yoga Barn 课程选择器
 
 一个面向乌布 The Yoga Barn 的选课助手 skill。它会结合当天真实课表、用户的练习经验、当天感受、课卡限制和可选的日历 / WHOOP 摘要，帮助用户理解课程并做出可执行的选择。回答语言会跟随用户的提问语言。
 
@@ -13,12 +13,12 @@ A Codex skill for choosing classes at The Yoga Barn in Ubud. It combines the liv
 Copy this directory into the Codex skills directory:
 
 ```text
-~/.codex/skills/yoga-barn-guide
+~/.codex/skills/yoga-barn-class-selector
 ```
 
-安装后可直接请求 Codex 使用 Yoga Barn 选课助手，或显式提到 `yoga-barn-guide`。
+安装后可直接请求 Codex 使用 Yoga Barn 课程选择器，或显式提到 `yoga-barn-class-selector`。
 
-After installation, ask Codex to use the Yoga Barn guide or mention `yoga-barn-guide` explicitly.
+After installation, ask Codex to use the Yoga Barn class selector or mention `yoga-barn-class-selector` explicitly.
 
 ## 主要能力 / Capabilities
 

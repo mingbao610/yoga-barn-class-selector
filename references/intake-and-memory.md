@@ -67,7 +67,7 @@
 
 ## 个人记忆
 
-优先使用当前用户已授权且真实可读写的个人记忆服务。否则可用单用户文件：macOS `~/Library/Application Support/YogaBarnGuide/preferences.json`；其他系统 `${XDG_DATA_HOME:-~/.local/share}/yoga-barn-guide/preferences.json`。目录0700、文件0600，先读最新版再合并并原子替换；共享系统按已验证用户身份隔离。凭据不进入偏好文件。
+优先使用当前用户已授权且真实可读写的个人记忆服务。否则可用单用户文件：macOS `~/Library/Application Support/YogaBarnGuide/preferences.json`；其他系统 `${XDG_DATA_HOME:-~/.local/share}/yoga-barn-class-selector/preferences.json`。目录0700、文件0600，先读最新版再合并并原子替换；共享系统按已验证用户身份隔离。凭据不进入偏好文件。
 
 只有用户已要求记住或已有适用授权时写入。新用户回答问卷不自动授权跨任务保存；可在结果中简短说明回复「记住偏好」后可复用，不强加额外一题。无持久化能力就说明只在本次对话复用。
 
