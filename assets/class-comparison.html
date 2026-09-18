@@ -1,0 +1,85 @@
+<div id="yb-course-choice">
+  <div class="viz-row yb-meta"><span data-date></span><span data-status></span></div>
+  <div class="viz-grid" data-courses></div>
+  <p class="text-small" data-constraint hidden></p>
+  <div class="yb-bottom">
+    <span class="text-small" data-checked></span>
+    <details><summary>来源与核查</summary><div data-evidence></div></details>
+  </div>
+  <p role="status" aria-live="polite" data-feedback hidden></p>
+  <label class="form-label" data-fallback hidden>可复制到对话继续
+    <textarea class="form-control" data-message readonly rows="3"></textarea>
+  </label>
+</div>
+<style>
+#yb-course-choice {color:var(--foreground)}
+#yb-course-choice .yb-meta {margin-bottom:16px;justify-content:space-between;color:var(--muted-foreground)}
+#yb-course-choice .yb-course {display:flex;flex-direction:column;gap:16px;min-width:0}
+#yb-course-choice .yb-heading {display:grid;gap:6px;min-height:110px}
+#yb-course-choice h3, #yb-course-choice p, #yb-course-choice dl {margin:0}
+#yb-course-choice .yb-en {color:var(--muted-foreground);overflow-wrap:anywhere}
+#yb-course-choice .yb-facts {display:grid;gap:5px}
+#yb-course-choice .yb-differences {display:grid;gap:14px}
+#yb-course-choice .yb-difference {display:grid;gap:5px}
+#yb-course-choice dt {color:var(--muted-foreground)}
+#yb-course-choice dd {margin:0;min-height:42px;overflow-wrap:anywhere}
+#yb-course-choice .yb-action {margin-top:auto;display:grid;gap:12px;justify-items:start}
+#yb-course-choice .yb-bottom {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted-foreground)}
+#yb-course-choice [data-evidence] {display:grid;gap:8px;margin-top:12px}
+#yb-course-choice [data-feedback], #yb-course-choice [data-fallback] {margin-top:14px}
+#yb-course-choice [data-constraint] {margin-top:16px}
+@media(max-width:520px){#yb-course-choice .yb-heading{min-height:0}#yb-course-choice dd{min-height:0}}
+</style>
+<script>
+(() => {
+  const comparisonData = null;
+  // Fill comparisonData with verified, task-specific data in the output copy.
+  // {dateLabel,statusLabel,checkedLabel,constraint,evidence:[{label,url}],notes:[],courses:[
+  // {id,tag,title,name,time,teacher,room,differences:[{label,text}],fee,arrival,action,message}]}
+  const root=document.getElementById('yb-course-choice');
+  if(!comparisonData){root.textContent='尚未填入已核实的课程。';return;}
+  const make=(tag,text,className)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(className)e.className=className;return e;};
+  root.querySelector('[data-date]').textContent=comparisonData.dateLabel;
+  root.querySelector('[data-status]').textContent=comparisonData.statusLabel;
+  root.querySelector('[data-checked]').textContent=comparisonData.checkedLabel;
+  if(comparisonData.constraint){const constraint=root.querySelector('[data-constraint]');constraint.textContent=comparisonData.constraint;constraint.hidden=false;}
+  const holder=root.querySelector('[data-courses]');
+  const feedback=root.querySelector('[data-feedback]');
+  const fallback=root.querySelector('[data-fallback]');
+  for(const course of comparisonData.courses){
+    const panel=make('article',null,'card');
+    const content=make('div',null,'yb-course');
+    const heading=make('div',null,'yb-heading');
+    heading.append(make('span',course.tag,'text-small'),make('h3',course.title),make('p',course.name,'yb-en text-small'));
+    const facts=make('div',null,'yb-facts');
+    facts.append(make('p',course.time,'tabular-nums'),make('p',course.teacher+' · '+course.room,'text-small'));
+    const differences=make('dl',null,'yb-differences');
+    for(const difference of course.differences){const pair=make('div',null,'yb-difference');pair.append(make('dt',difference.label,'text-small'),make('dd',difference.text));differences.append(pair);}
+    const action=make('div',null,'yb-action');
+    const fee=make('p',course.fee);
+    const button=make('button',course.action,'btn');button.type='button';button.setAttribute('aria-label',course.action+'：'+course.name);
+    button.addEventListener('click',async()=>{
+      feedback.hidden=false;
+      root.querySelector('[data-message]').value=course.message;
+      if(!window.openai || typeof window.openai.sendFollowUpMessage!=='function'){
+        feedback.textContent='已保留你的选择，请复制下方文字发送。';fallback.hidden=false;return;
+      }
+      const buttons=[...holder.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);
+      feedback.textContent='请在发送确认中提交你的选择。';
+      try{
+        await window.openai.sendFollowUpMessage({prompt:course.message,title:'发送课程选择'});
+        feedback.textContent='已调用发送入口；对话出现新消息后才算提交，尚未报名。';
+      }catch(error){feedback.textContent='发送未完成，可复制下方文字继续。';fallback.hidden=false;}
+      finally{buttons.forEach(b=>b.disabled=false);}
+    });
+    action.append(fee,make('p',course.arrival,'text-small'),button);
+    content.append(heading,facts,make('hr'),differences,make('hr'),action);panel.append(content);holder.append(panel);
+  }
+  const evidence=root.querySelector('[data-evidence]');
+  for(const source of comparisonData.evidence){
+    const url=new URL(source.url);if(url.protocol!=='https:')continue;
+    const a=make('a',source.label);a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';evidence.append(a);
+  }
+  for(const note of comparisonData.notes || [])evidence.append(make('p',note,'text-small'));
+})();
+</script>

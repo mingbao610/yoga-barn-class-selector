@@ -1,0 +1,67 @@
+<div id="yb-intake-persistent">
+  <form>
+    <div data-questions></div>
+    <div class="viz-row">
+      <button type="submit" class="btn btn-primary">提交回答，继续选课</button>
+    </div>
+    <p role="status" aria-live="polite" data-status></p>
+    <div data-fallback hidden>
+      <label class="form-label">未能发送时，可复制这段回答到对话中
+        <textarea class="form-control" rows="5" readonly data-summary></textarea>
+      </label>
+    </div>
+  </form>
+</div>
+<style>
+#yb-intake-persistent [data-questions] {display:grid;gap:24px;margin-bottom:24px}
+#yb-intake-persistent section {display:grid;gap:10px}
+#yb-intake-persistent h3 {margin:0}
+#yb-intake-persistent [data-options] {display:grid;gap:6px}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('yb-intake-persistent');
+  // Replace questions with only the current user's missing information; maximum three.
+  const questions = [
+    {id:'experience', title:'1 · 基础瑜伽动作，你熟悉到什么程度？', options:['还没学过，希望从头讲解','上过一些课，仍需要示范和纠正','熟悉基础动作，能跟随连续练习','有持续或深入练习经验']},
+    {id:'today', title:'2 · 今天更想怎样参与？', options:['状态不错，想充分活动','有些疲劳，想适量活动','有不适或活动限制','还没想好，先看备选']},
+    {id:'payment', title:'3 · 选课时，要限定在 Yoga Barn 课卡可用的课程吗？', options:['只看课卡可用的课，不额外付费','优先用课卡，特别想上的课可另付费','不限课卡范围，注明价格即可','还不确定，先说明区别']}
+  ];
+  const holder=root.querySelector('[data-questions]');
+  questions.slice(0,3).forEach(q => {
+    const section=document.createElement('section');
+    const heading=document.createElement('h3'); heading.id='yb-'+q.id; heading.textContent=q.title;
+    section.setAttribute('role','group'); section.setAttribute('aria-labelledby',heading.id); section.append(heading);
+    const options=document.createElement('div'); options.dataset.options='';
+    q.options.forEach((value,i)=>{
+      const label=document.createElement('label'); label.className='form-check';
+      const input=document.createElement('input'); input.type='radio'; input.name=q.id; input.value=value; input.className='form-check-input';
+      const text=document.createElement('span'); text.className='form-check-label'; text.textContent=value;
+      label.append(input,text); options.append(label);
+    });
+    section.append(options);
+    const label=document.createElement('label'); label.className='form-label'; label.textContent='或自由描述（可替代选项，也可补充）';
+    const input=document.createElement('textarea'); input.className='form-control'; input.name=q.id+'-free'; input.rows=2; input.maxLength=1500;
+    label.append(input); section.append(label); holder.append(section);
+  });
+  const form=root.querySelector('form'), status=root.querySelector('[data-status]'), button=form.querySelector('button[type=submit]');
+  form.addEventListener('input',()=>{status.textContent='';});
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const data=new FormData(form);
+    const answers=questions.map(q=>({question:q.title,choice:data.get(q.id)||'',description:String(data.get(q.id+'-free')||'').trim()}));
+    const missing=answers.findIndex(a=>!a.choice&&!a.description);
+    if(missing!==-1){status.textContent='请为第 '+(missing+1)+' 题选择一个选项或自由填写。';form.elements[questions[missing].id+'-free'].focus();return;}
+    const prompt='帮我继续选 Yoga Barn 的课程。\n'+answers.map(a=>a.question.replace(/^\d+\s*·\s*/, '')+'：'+(a.description || a.choice)).join('\n');
+    root.querySelector('[data-summary]').value=prompt;
+    root.querySelector('[data-fallback]').hidden=false;
+    if(!window.openai || typeof window.openai.sendFollowUpMessage!=='function'){status.textContent='当前界面不支持直接发送，请复制下面的回答到对话。';return;}
+    button.disabled=true; status.textContent='请在接下来的发送确认中确认回答。';
+    try{
+      await window.openai.sendFollowUpMessage({prompt,title:'发送选课回答'});
+      status.textContent='已调用发送入口；是否发送以对话中的新消息为准。你的填写仍保留在这里。';
+    }catch(error){status.textContent='发送未完成，你的填写已保留，可重试或复制到对话。';}
+    finally{button.disabled=false;}
+  });
+})();
+</script>
